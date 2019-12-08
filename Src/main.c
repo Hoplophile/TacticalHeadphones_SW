@@ -50,6 +50,9 @@ DMA_HandleTypeDef hdma_adc1;
 
 DAC_HandleTypeDef hdac1;
 
+SAI_HandleTypeDef hsai_BlockA1;
+DMA_HandleTypeDef hdma_sai1_a;
+
 TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN PV */
@@ -61,20 +64,20 @@ const uint32_t sine_wave_array[32] = {2047, 1648, 1264, 910, 600,  345,
                     4095, 4056, 3939, 3750, 3495, 3185,
                     2831, 2447};
 
-//const uint32_t sine_wave_array[32] = {10, 1000, 10, 1000, 10, 1000, 10, 1000,
-//		10, 1000, 10, 1000, 10, 1000, 10, 1000, 10, 1000, 10, 1000,
-//		10, 1000, 10, 1000, 10, 1000, 10, 1000, 10, 1000, 10, 1000};
-
 uint32_t averaged_outputs[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int averaging_counter = 0;
 
+uint32_t micro_sai;
 uint32_t microphone;
 uint32_t speaker_output;
 uint16_t ADC_flag = 5;
+uint16_t SAI_flag = 5;
 uint16_t DAC_flag = 5;
 int adc_sample_counter = 0;
 int adc_sample_sum = 0;
 int adc_sample_mean = 0;
+int dac_done = 0;
+int adc_done = 0;
 
 /* USER CODE END PV */
 
@@ -85,6 +88,7 @@ static void MX_DMA_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_DAC1_Init(void);
+static void MX_SAI1_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -97,19 +101,9 @@ void HAL_ADC_ConvCpltCallback( ADC_HandleTypeDef * hadc){
 		adc_sample_sum += microphone;
 		adc_sample_counter++;
 	}
-	averaged_outputs[0] += microphone;
-	averaged_outputs[1] += microphone;
-	averaged_outputs[2] += microphone;
-	averaged_outputs[3] += microphone;
-	averaged_outputs[4] += microphone;
-	averaged_outputs[5] += microphone;
-	averaged_outputs[6] += microphone;
-	averaged_outputs[7] += microphone;
-	averaged_outputs[8] += microphone;
-	averaged_outputs[9] += microphone;
-
+	for(int i=0; i<10; i++) averaged_outputs[i] += microphone;
 	averaged_outputs[averaging_counter] /= 10;
-	speaker_output = -((averaged_outputs[averaging_counter] - adc_sample_mean) * 6) + 2000;
+	speaker_output = -((averaged_outputs[averaging_counter] - adc_sample_mean) * 40) + 2000;
 	averaged_outputs[averaging_counter] = 0;
 	averaging_counter++;
 
@@ -117,13 +111,24 @@ void HAL_ADC_ConvCpltCallback( ADC_HandleTypeDef * hadc){
 	if(speaker_output > 4095) speaker_output = 0;
 
 	HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speaker_output);
-	HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
+	//HAL_DAC_Stop(&hdac1, DAC_CHANNEL_1);
+//	HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, &speaker_output, 32, DAC_ALIGN_12B_R);
+	//HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
 }
 
 void HAL_DAC_ConvCpltCallbackCh1( DAC_HandleTypeDef * hdac){
-	if(DAC_flag) DAC_flag = 0;
-	else DAC_flag = 1;
+	//HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
+
 }
+
+void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai){
+	SAI_flag = 1;
+}
+
+void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai){
+	SAI_flag = 2;
+}
+
 
 /* USER CODE END PFP */
 
@@ -164,15 +169,27 @@ int main(void)
   MX_TIM6_Init();
   MX_ADC1_Init();
   MX_DAC1_Init();
+  MX_SAI1_Init();
   /* USER CODE BEGIN 2 */
 
   /***** ADC *****/
-  HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
+  //HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
 
   /***** DAC *****/
   HAL_TIM_Base_Start(&htim6);
-//  HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t *)sine_wave_array, 32, DAC_ALIGN_12B_R);
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+//  HAL_TIM_Base_Start(&htim6);
+//  HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t *)sine_wave_array, 32, DAC_ALIGN_12B_R);
+
+  /***** SAI *****/
+//  if(HAL_SAI_Receive(&hsai_BlockA1, (uint8_t *)micro_sai, (uint16_t)32, 100) != HAL_OK){
+//	  SAI_flag = 99;
+//  }
+  if(HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t *)micro_sai, (uint16_t)32) != HAL_OK){
+
+	  SAI_flag = 66;
+  }
+
 
   /* USER CODE END 2 */
 
@@ -199,6 +216,7 @@ void SystemClock_Config(void)
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
+  RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
     /**Initializes the CPU, AHB and APB busses clocks 
     */
@@ -227,6 +245,20 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_SAI1;
+  PeriphClkInit.Sai1ClockSelection = RCC_SAI1CLKSOURCE_PLLSAI1;
+  PeriphClkInit.PLLSAI1.PLLSAI1Source = RCC_PLLSOURCE_HSI;
+  PeriphClkInit.PLLSAI1.PLLSAI1M = 1;
+  PeriphClkInit.PLLSAI1.PLLSAI1N = 21;
+  PeriphClkInit.PLLSAI1.PLLSAI1P = RCC_PLLP_DIV7;
+  PeriphClkInit.PLLSAI1.PLLSAI1Q = RCC_PLLQ_DIV2;
+  PeriphClkInit.PLLSAI1.PLLSAI1R = RCC_PLLR_DIV4;
+  PeriphClkInit.PLLSAI1.PLLSAI1ClockOut = RCC_PLLSAI1_SAI1CLK;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -335,6 +367,27 @@ static void MX_DAC1_Init(void)
 
 }
 
+/* SAI1 init function */
+static void MX_SAI1_Init(void)
+{
+
+  hsai_BlockA1.Instance = SAI1_Block_A;
+  hsai_BlockA1.Init.AudioMode = SAI_MODEMASTER_RX;
+  hsai_BlockA1.Init.Synchro = SAI_ASYNCHRONOUS;
+  hsai_BlockA1.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
+  hsai_BlockA1.Init.NoDivider = SAI_MASTERDIVIDER_ENABLE;
+  hsai_BlockA1.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_EMPTY;
+  hsai_BlockA1.Init.AudioFrequency = SAI_AUDIO_FREQUENCY_16K;
+  hsai_BlockA1.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
+  hsai_BlockA1.Init.MonoStereoMode = SAI_STEREOMODE;
+  hsai_BlockA1.Init.CompandingMode = SAI_NOCOMPANDING;
+  if (HAL_SAI_InitProtocol(&hsai_BlockA1, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_32BIT, 2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* TIM6 init function */
 static void MX_TIM6_Init(void)
 {
@@ -344,7 +397,7 @@ static void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 0;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 3270;
+  htim6.Init.Period = 32768;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -369,6 +422,9 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA2_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Channel1_IRQn);
   /* DMA2_Channel3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Channel3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Channel3_IRQn);
@@ -383,6 +439,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
 }
 

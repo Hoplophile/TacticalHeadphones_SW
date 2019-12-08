@@ -1,10 +1,12 @@
 /**
   ******************************************************************************
-  * @file    stm32l4xx_it.h
-  * @brief   This file contains the headers of the interrupt handlers.
+  * @file    stm32l4xx_hal_sai_ex.h
+  * @author  MCD Application Team
+  * @brief   Header file of SAI HAL extended module.
   ******************************************************************************
+  * @attention
   *
-  * COPYRIGHT(c) 2019 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -32,38 +34,92 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32L4xx_IT_H
-#define __STM32L4xx_IT_H
+#ifndef STM32L4xx_HAL_SAI_EX_H
+#define STM32L4xx_HAL_SAI_EX_H
 
 #ifdef __cplusplus
- extern "C" {
-#endif 
+extern "C" {
+#endif
+
+#if defined(STM32L4R5xx) || defined(STM32L4R7xx) || defined(STM32L4R9xx) || defined(STM32L4S5xx) || defined(STM32L4S7xx) || defined(STM32L4S9xx)
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32l4xx_hal.h"
-#include "main.h"
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
+#include "stm32l4xx_hal_def.h"
 
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void MemManage_Handler(void);
-void BusFault_Handler(void);
-void UsageFault_Handler(void);
-void SVC_Handler(void);
-void DebugMon_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
-void TIM6_DAC_IRQHandler(void);
-void DMA2_Channel1_IRQHandler(void);
-void DMA2_Channel3_IRQHandler(void);
+/** @addtogroup STM32L4xx_HAL_Driver
+  * @{
+  */
+
+/** @addtogroup SAIEx
+  * @{
+  */
+
+/* Exported types ------------------------------------------------------------*/
+/** @defgroup SAIEx_Exported_Types SAIEx Exported Types
+  * @{
+  */
+
+/**
+  * @brief  PDM microphone delay structure definition
+  */
+typedef struct
+{
+  uint32_t MicPair;     /*!< Specifies which pair of microphones is selected.
+                             This parameter must be a number between Min_Data = 1 and Max_Data = 3. */
+
+  uint32_t LeftDelay;   /*!< Specifies the delay in PDM clock unit to apply on left microphone.
+                             This parameter must be a number between Min_Data = 0 and Max_Data = 7. */
+
+  uint32_t RightDelay;  /*!< Specifies the delay in PDM clock unit to apply on right microphone.
+                             This parameter must be a number between Min_Data = 0 and Max_Data = 7. */
+} SAIEx_PdmMicDelayParamTypeDef;
+
+/**
+  * @}
+  */
+
+/* Exported constants --------------------------------------------------------*/
+/* Exported macros -----------------------------------------------------------*/
+/* Exported functions --------------------------------------------------------*/
+/** @addtogroup SAIEx_Exported_Functions SAIEx Extended Exported Functions
+  * @{
+  */
+
+/** @addtogroup SAIEx_Exported_Functions_Group1 Peripheral Control functions
+  * @{
+  */
+HAL_StatusTypeDef HAL_SAIEx_ConfigPdmMicDelay(SAI_HandleTypeDef *hsai, SAIEx_PdmMicDelayParamTypeDef *pdmMicDelay);
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/* Private macros ------------------------------------------------------------*/
+/** @addtogroup SAIEx_Private_Macros SAIEx Extended Private Macros
+  * @{
+  */
+#define IS_SAI_PDM_MIC_DELAY(VALUE)   ((VALUE) <= 7U)
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+#endif /* STM32L4R5xx || STM32L4R7xx || STM32L4R9xx || STM32L4S5xx || STM32L4S7xx || STM32L4S9xx */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __STM32L4xx_IT_H */
+#endif /* STM32L4xx_HAL_SAI_EX_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
