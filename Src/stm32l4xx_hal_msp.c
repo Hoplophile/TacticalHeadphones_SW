@@ -41,6 +41,8 @@
 
 extern DMA_HandleTypeDef hdma_adc1;
 
+extern DMA_HandleTypeDef hdma_dac_ch1;
+
 extern void _Error_Handler(char *, int);
 /* USER CODE BEGIN 0 */
 
@@ -80,6 +82,8 @@ void HAL_MspInit(void)
   /* USER CODE END MspInit 1 */
 }
 
+static uint32_t HAL_RCC_ADC_CLK_ENABLED=0;
+
 void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
 {
 
@@ -90,7 +94,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
 
   /* USER CODE END ADC1_MspInit 0 */
     /* Peripheral clock enable */
-    __HAL_RCC_ADC_CLK_ENABLE();
+    HAL_RCC_ADC_CLK_ENABLED++;
+    if(HAL_RCC_ADC_CLK_ENABLED==1){
+      __HAL_RCC_ADC_CLK_ENABLE();
+    }
   
     /**ADC1 GPIO Configuration    
     PC0     ------> ADC1_IN1 
@@ -122,6 +129,20 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
 
   /* USER CODE END ADC1_MspInit 1 */
   }
+  else if(hadc->Instance==ADC3)
+  {
+  /* USER CODE BEGIN ADC3_MspInit 0 */
+
+  /* USER CODE END ADC3_MspInit 0 */
+    /* Peripheral clock enable */
+    HAL_RCC_ADC_CLK_ENABLED++;
+    if(HAL_RCC_ADC_CLK_ENABLED==1){
+      __HAL_RCC_ADC_CLK_ENABLE();
+    }
+  /* USER CODE BEGIN ADC3_MspInit 1 */
+
+  /* USER CODE END ADC3_MspInit 1 */
+  }
 
 }
 
@@ -134,7 +155,10 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
 
   /* USER CODE END ADC1_MspDeInit 0 */
     /* Peripheral clock disable */
-    __HAL_RCC_ADC_CLK_DISABLE();
+    HAL_RCC_ADC_CLK_ENABLED--;
+    if(HAL_RCC_ADC_CLK_ENABLED==0){
+      __HAL_RCC_ADC_CLK_DISABLE();
+    }
   
     /**ADC1 GPIO Configuration    
     PC0     ------> ADC1_IN1 
@@ -146,6 +170,20 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
 
   /* USER CODE END ADC1_MspDeInit 1 */
+  }
+  else if(hadc->Instance==ADC3)
+  {
+  /* USER CODE BEGIN ADC3_MspDeInit 0 */
+
+  /* USER CODE END ADC3_MspDeInit 0 */
+    /* Peripheral clock disable */
+    HAL_RCC_ADC_CLK_ENABLED--;
+    if(HAL_RCC_ADC_CLK_ENABLED==0){
+      __HAL_RCC_ADC_CLK_DISABLE();
+    }
+  /* USER CODE BEGIN ADC3_MspDeInit 1 */
+
+  /* USER CODE END ADC3_MspDeInit 1 */
   }
 
 }
@@ -170,9 +208,24 @@ void HAL_DAC_MspInit(DAC_HandleTypeDef* hdac)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    /* DAC1 interrupt Init */
-    HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
+    /* DAC1 DMA Init */
+    /* DAC_CH1 Init */
+    hdma_dac_ch1.Instance = DMA1_Channel3;
+    hdma_dac_ch1.Init.Request = DMA_REQUEST_6;
+    hdma_dac_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_dac_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_dac_ch1.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_dac_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_dac_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_dac_ch1.Init.Mode = DMA_CIRCULAR;
+    hdma_dac_ch1.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_dac_ch1) != HAL_OK)
+    {
+      _Error_Handler(__FILE__, __LINE__);
+    }
+
+    __HAL_LINKDMA(hdac,DMA_Handle1,hdma_dac_ch1);
+
   /* USER CODE BEGIN DAC1_MspInit 1 */
 
   /* USER CODE END DAC1_MspInit 1 */
@@ -196,15 +249,8 @@ void HAL_DAC_MspDeInit(DAC_HandleTypeDef* hdac)
     */
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4);
 
-    /* DAC1 interrupt DeInit */
-  /* USER CODE BEGIN DAC1:TIM6_DAC_IRQn disable */
-    /**
-    * Uncomment the line below to disable the "TIM6_DAC_IRQn" interrupt
-    * Be aware, disabling shared interrupt may affect other IPs
-    */
-    /* HAL_NVIC_DisableIRQ(TIM6_DAC_IRQn); */
-  /* USER CODE END DAC1:TIM6_DAC_IRQn disable */
-
+    /* DAC1 DMA DeInit */
+    HAL_DMA_DeInit(hdac->DMA_Handle1);
   /* USER CODE BEGIN DAC1_MspDeInit 1 */
 
   /* USER CODE END DAC1_MspDeInit 1 */
@@ -222,9 +268,6 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
   /* USER CODE END TIM6_MspInit 0 */
     /* Peripheral clock enable */
     __HAL_RCC_TIM6_CLK_ENABLE();
-    /* TIM6 interrupt Init */
-    HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
   /* USER CODE BEGIN TIM6_MspInit 1 */
 
   /* USER CODE END TIM6_MspInit 1 */
@@ -242,16 +285,6 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
   /* USER CODE END TIM6_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_TIM6_CLK_DISABLE();
-
-    /* TIM6 interrupt DeInit */
-  /* USER CODE BEGIN TIM6:TIM6_DAC_IRQn disable */
-    /**
-    * Uncomment the line below to disable the "TIM6_DAC_IRQn" interrupt
-    * Be aware, disabling shared interrupt may affect other IPs
-    */
-    /* HAL_NVIC_DisableIRQ(TIM6_DAC_IRQn); */
-  /* USER CODE END TIM6:TIM6_DAC_IRQn disable */
-
   /* USER CODE BEGIN TIM6_MspDeInit 1 */
 
   /* USER CODE END TIM6_MspDeInit 1 */

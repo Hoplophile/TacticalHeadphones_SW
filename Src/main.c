@@ -46,9 +46,11 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+ADC_HandleTypeDef hadc3;
 DMA_HandleTypeDef hdma_adc1;
 
 DAC_HandleTypeDef hdac1;
+DMA_HandleTypeDef hdma_dac_ch1;
 
 TIM_HandleTypeDef htim6;
 
@@ -61,15 +63,13 @@ const uint32_t sine_wave_array[32] = {2047, 1648, 1264, 910, 600,  345,
                     4095, 4056, 3939, 3750, 3495, 3185,
                     2831, 2447};
 
-//const uint32_t sine_wave_array[32] = {10, 1000, 10, 1000, 10, 1000, 10, 1000,
-//		10, 1000, 10, 1000, 10, 1000, 10, 1000, 10, 1000, 10, 1000,
-//		10, 1000, 10, 1000, 10, 1000, 10, 1000, 10, 1000, 10, 1000};
+const uint32_t sine_wave[2] = {2047, 16480};
 
 uint32_t averaged_outputs[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int averaging_counter = 0;
 
 uint32_t microphone;
-uint32_t speaker_output;
+uint32_t speaker_output[1];
 uint16_t ADC_flag = 5;
 uint16_t DAC_flag = 5;
 int adc_sample_counter = 0;
@@ -85,6 +85,7 @@ static void MX_DMA_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_DAC1_Init(void);
+static void MX_ADC3_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -97,6 +98,8 @@ void HAL_ADC_ConvCpltCallback( ADC_HandleTypeDef * hadc){
 		adc_sample_sum += microphone;
 		adc_sample_counter++;
 	}
+
+	ADC_flag = 1;
 	averaged_outputs[0] += microphone;
 	averaged_outputs[1] += microphone;
 	averaged_outputs[2] += microphone;
@@ -109,20 +112,26 @@ void HAL_ADC_ConvCpltCallback( ADC_HandleTypeDef * hadc){
 	averaged_outputs[9] += microphone;
 
 	averaged_outputs[averaging_counter] /= 10;
-	speaker_output = -((averaged_outputs[averaging_counter] - adc_sample_mean) * 6) + 2000;
+	speaker_output[0] = -((averaged_outputs[averaging_counter] - adc_sample_mean) * 3) + 2000;
 	averaged_outputs[averaging_counter] = 0;
 	averaging_counter++;
 
 	if(averaging_counter == 10) averaging_counter = 0;
-	if(speaker_output > 4095) speaker_output = 0;
+	if(speaker_output[0] > 4095) speaker_output[0] = 0;
 
-	HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, speaker_output);
-	HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
+//	HAL_TIM_Base_Start(&htim6);
+	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+	HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t *) speaker_output, 1, DAC_ALIGN_12B_R);
 }
 
 void HAL_DAC_ConvCpltCallbackCh1( DAC_HandleTypeDef * hdac){
-	if(DAC_flag) DAC_flag = 0;
-	else DAC_flag = 1;
+	DAC_flag = 1;
+	HAL_DAC_Stop_DMA(&hdac1, DAC_CHANNEL_1);
+	HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
+}
+
+void HAL_DAC_ErrorCallbackCh1( DAC_HandleTypeDef * hdac){
+	DAC_flag = 50;
 }
 
 /* USER CODE END PFP */
@@ -164,15 +173,17 @@ int main(void)
   MX_TIM6_Init();
   MX_ADC1_Init();
   MX_DAC1_Init();
+  MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
 
   /***** ADC *****/
   HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
 
-  /***** DAC *****/
+//  /***** DAC *****/
   HAL_TIM_Base_Start(&htim6);
-//  HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t *)sine_wave_array, 32, DAC_ALIGN_12B_R);
-  HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+//  HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+//  HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t *) sine_wave_array, 32, DAC_ALIGN_12B_R);
+//  HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, (uint32_t *) speaker_output, 1, DAC_ALIGN_12B_R);
 
   /* USER CODE END 2 */
 
@@ -307,6 +318,50 @@ static void MX_ADC1_Init(void)
 
 }
 
+/* ADC3 init function */
+static void MX_ADC3_Init(void)
+{
+
+  ADC_ChannelConfTypeDef sConfig;
+
+    /**Common config 
+    */
+  hadc3.Instance = ADC3;
+  hadc3.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV1;
+  hadc3.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc3.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc3.Init.LowPowerAutoWait = DISABLE;
+  hadc3.Init.ContinuousConvMode = DISABLE;
+  hadc3.Init.NbrOfConversion = 1;
+  hadc3.Init.DiscontinuousConvMode = DISABLE;
+  hadc3.Init.NbrOfDiscConversion = 1;
+  hadc3.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T1_CC1;
+  hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
+  hadc3.Init.DMAContinuousRequests = DISABLE;
+  hadc3.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+  hadc3.Init.OversamplingMode = DISABLE;
+  if (HAL_ADC_Init(&hadc3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure Regular Channel 
+    */
+  sConfig.Channel = ADC_CHANNEL_VBAT;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* DAC1 init function */
 static void MX_DAC1_Init(void)
 {
@@ -344,7 +399,7 @@ static void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 0;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 3270;
+  htim6.Init.Period = 400;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -367,8 +422,12 @@ static void MX_DMA_Init(void)
 {
   /* DMA controller clock enable */
   __HAL_RCC_DMA2_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
   /* DMA2_Channel3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Channel3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Channel3_IRQn);
