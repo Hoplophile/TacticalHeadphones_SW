@@ -21,9 +21,6 @@ Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_tim_ex.o: \
  D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma.h \
  D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma_ex.h \
  D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_cortex.h \
- D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_adc.h \
- D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_adc.h \
- D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_adc_ex.h \
  D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dac.h \
  D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dac_ex.h \
  D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash.h \
@@ -78,12 +75,6 @@ D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HA
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma_ex.h:
 
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_cortex.h:
-
-D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_adc.h:
-
-D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_adc.h:
-
-D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_adc_ex.h:
 
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dac.h:
 
