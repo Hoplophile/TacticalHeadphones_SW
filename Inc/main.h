@@ -49,6 +49,25 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define Left_Mic_Pin GPIO_PIN_0
+#define Left_Mic_GPIO_Port GPIOC
+#define Right_Mic_Pin GPIO_PIN_1
+#define Right_Mic_GPIO_Port GPIOC
+#define Vbat_Measurement_Pin GPIO_PIN_2
+#define Vbat_Measurement_GPIO_Port GPIOC
+#define Radio_In_Pin GPIO_PIN_0
+#define Radio_In_GPIO_Port GPIOA
+#define Button_Up_Pin GPIO_PIN_0
+#define Button_Up_GPIO_Port GPIOB
+#define Button_Main_Pin GPIO_PIN_1
+#define Button_Main_GPIO_Port GPIOB
+#define Button_Down_Pin GPIO_PIN_2
+#define Button_Down_GPIO_Port GPIOB
+#define Left_Sp_Amp_Pin GPIO_PIN_4
+#define Left_Sp_Amp_GPIO_Port GPIOB
+#define Right_Sp_Amp_Pin GPIO_PIN_5
+#define Right_Sp_Amp_GPIO_Port GPIOB
+
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 

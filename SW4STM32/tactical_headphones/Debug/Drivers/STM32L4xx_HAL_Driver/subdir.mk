@@ -22,6 +22,8 @@ D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HA
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_pwr_ex.c \
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc.c \
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc_ex.c \
+D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_sai.c \
+D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_sai_ex.c \
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim.c \
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim_ex.c 
 
@@ -44,6 +46,8 @@ OBJS += \
 ./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_pwr_ex.o \
 ./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_rcc.o \
 ./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_rcc_ex.o \
+./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_sai.o \
+./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_sai_ex.o \
 ./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_tim.o \
 ./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_tim_ex.o 
 
@@ -66,6 +70,8 @@ C_DEPS += \
 ./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_pwr_ex.d \
 ./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_rcc.d \
 ./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_rcc_ex.d \
+./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_sai.d \
+./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_sai_ex.d \
 ./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_tim.d \
 ./Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_tim_ex.d 
 
@@ -208,6 +214,22 @@ Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_rcc.o: D:/Dokumenty/Praca_inzynierska
 	@echo ' '
 
 Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_rcc_ex.o: D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc_ex.c
+	@echo 'Building file: $<'
+	@echo 'Invoking: MCU GCC Compiler'
+	@echo $(PWD)
+	arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 '-D__weak=__attribute__((weak))' '-D__packed=__attribute__((__packed__))' -DUSE_HAL_DRIVER -DSTM32L476xx -I"D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Inc" -I"D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc" -I"D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/Legacy" -I"D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/CMSIS/Device/ST/STM32L4xx/Include" -I"D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/CMSIS/Include"  -Og -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -o "$@" "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_sai.o: D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_sai.c
+	@echo 'Building file: $<'
+	@echo 'Invoking: MCU GCC Compiler'
+	@echo $(PWD)
+	arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 '-D__weak=__attribute__((weak))' '-D__packed=__attribute__((__packed__))' -DUSE_HAL_DRIVER -DSTM32L476xx -I"D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Inc" -I"D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc" -I"D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/Legacy" -I"D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/CMSIS/Device/ST/STM32L4xx/Include" -I"D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/CMSIS/Include"  -Og -g3 -Wall -fmessage-length=0 -ffunction-sections -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -o "$@" "$<"
+	@echo 'Finished building: $<'
+	@echo ' '
+
+Drivers/STM32L4xx_HAL_Driver/stm32l4xx_hal_sai_ex.o: D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_sai_ex.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: MCU GCC Compiler'
 	@echo $(PWD)

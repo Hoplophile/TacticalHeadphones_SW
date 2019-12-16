@@ -100,9 +100,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     }
   
     /**ADC1 GPIO Configuration    
-    PC0     ------> ADC1_IN1 
+    PC0     ------> ADC1_IN1
+    PC1     ------> ADC1_IN2 
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_0;
+    GPIO_InitStruct.Pin = Left_Mic_Pin|Right_Mic_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG_ADC_CONTROL;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -129,6 +130,29 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
 
   /* USER CODE END ADC1_MspInit 1 */
   }
+  else if(hadc->Instance==ADC2)
+  {
+  /* USER CODE BEGIN ADC2_MspInit 0 */
+
+  /* USER CODE END ADC2_MspInit 0 */
+    /* Peripheral clock enable */
+    HAL_RCC_ADC_CLK_ENABLED++;
+    if(HAL_RCC_ADC_CLK_ENABLED==1){
+      __HAL_RCC_ADC_CLK_ENABLE();
+    }
+  
+    /**ADC2 GPIO Configuration    
+    PA0     ------> ADC2_IN5 
+    */
+    GPIO_InitStruct.Pin = Radio_In_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG_ADC_CONTROL;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(Radio_In_GPIO_Port, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN ADC2_MspInit 1 */
+
+  /* USER CODE END ADC2_MspInit 1 */
+  }
   else if(hadc->Instance==ADC3)
   {
   /* USER CODE BEGIN ADC3_MspInit 0 */
@@ -139,6 +163,18 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     if(HAL_RCC_ADC_CLK_ENABLED==1){
       __HAL_RCC_ADC_CLK_ENABLE();
     }
+  
+    /**ADC3 GPIO Configuration    
+    PC2     ------> ADC3_IN3 
+    */
+    GPIO_InitStruct.Pin = Vbat_Measurement_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG_ADC_CONTROL;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(Vbat_Measurement_GPIO_Port, &GPIO_InitStruct);
+
+    /* ADC3 interrupt Init */
+    HAL_NVIC_SetPriority(ADC3_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(ADC3_IRQn);
   /* USER CODE BEGIN ADC3_MspInit 1 */
 
   /* USER CODE END ADC3_MspInit 1 */
@@ -161,15 +197,36 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     }
   
     /**ADC1 GPIO Configuration    
-    PC0     ------> ADC1_IN1 
+    PC0     ------> ADC1_IN1
+    PC1     ------> ADC1_IN2 
     */
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_0);
+    HAL_GPIO_DeInit(GPIOC, Left_Mic_Pin|Right_Mic_Pin);
 
     /* ADC1 DMA DeInit */
     HAL_DMA_DeInit(hadc->DMA_Handle);
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
 
   /* USER CODE END ADC1_MspDeInit 1 */
+  }
+  else if(hadc->Instance==ADC2)
+  {
+  /* USER CODE BEGIN ADC2_MspDeInit 0 */
+
+  /* USER CODE END ADC2_MspDeInit 0 */
+    /* Peripheral clock disable */
+    HAL_RCC_ADC_CLK_ENABLED--;
+    if(HAL_RCC_ADC_CLK_ENABLED==0){
+      __HAL_RCC_ADC_CLK_DISABLE();
+    }
+  
+    /**ADC2 GPIO Configuration    
+    PA0     ------> ADC2_IN5 
+    */
+    HAL_GPIO_DeInit(Radio_In_GPIO_Port, Radio_In_Pin);
+
+  /* USER CODE BEGIN ADC2_MspDeInit 1 */
+
+  /* USER CODE END ADC2_MspDeInit 1 */
   }
   else if(hadc->Instance==ADC3)
   {
@@ -181,6 +238,14 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     if(HAL_RCC_ADC_CLK_ENABLED==0){
       __HAL_RCC_ADC_CLK_DISABLE();
     }
+  
+    /**ADC3 GPIO Configuration    
+    PC2     ------> ADC3_IN3 
+    */
+    HAL_GPIO_DeInit(Vbat_Measurement_GPIO_Port, Vbat_Measurement_Pin);
+
+    /* ADC3 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(ADC3_IRQn);
   /* USER CODE BEGIN ADC3_MspDeInit 1 */
 
   /* USER CODE END ADC3_MspDeInit 1 */
@@ -201,9 +266,10 @@ void HAL_DAC_MspInit(DAC_HandleTypeDef* hdac)
     __HAL_RCC_DAC1_CLK_ENABLE();
   
     /**DAC1 GPIO Configuration    
-    PA4     ------> DAC1_OUT1 
+    PA4     ------> DAC1_OUT1
+    PA5     ------> DAC1_OUT2 
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_4;
+    GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -245,9 +311,10 @@ void HAL_DAC_MspDeInit(DAC_HandleTypeDef* hdac)
     __HAL_RCC_DAC1_CLK_DISABLE();
   
     /**DAC1 GPIO Configuration    
-    PA4     ------> DAC1_OUT1 
+    PA4     ------> DAC1_OUT1
+    PA5     ------> DAC1_OUT2 
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4|GPIO_PIN_5);
 
     /* DAC1 DMA DeInit */
     HAL_DMA_DeInit(hdac->DMA_Handle1);
@@ -290,6 +357,69 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
   /* USER CODE END TIM6_MspDeInit 1 */
   }
 
+}
+
+static uint32_t SAI1_client =0;
+
+void HAL_SAI_MspInit(SAI_HandleTypeDef* hsai)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct;
+/* SAI1 */
+    if(hsai->Instance==SAI1_Block_A)
+    {
+    /* Peripheral clock enable */
+    if (SAI1_client == 0)
+    {
+       __HAL_RCC_SAI1_CLK_ENABLE();
+    }
+    SAI1_client ++;
+    
+    /**SAI1_A_Block_A GPIO Configuration    
+    PC3     ------> SAI1_SD_A
+    PB10     ------> SAI1_SCK_A
+    PB9     ------> SAI1_FS_A 
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_3;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF13_SAI1;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_9;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF13_SAI1;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    }
+}
+
+void HAL_SAI_MspDeInit(SAI_HandleTypeDef* hsai)
+{
+
+/* SAI1 */
+    if(hsai->Instance==SAI1_Block_A)
+    {
+    SAI1_client --;
+    if (SAI1_client == 0)
+      {
+      /* Peripheral clock disable */ 
+       __HAL_RCC_SAI1_CLK_DISABLE();
+      }
+    
+    /**SAI1_A_Block_A GPIO Configuration    
+    PC3     ------> SAI1_SD_A
+    PB10     ------> SAI1_SCK_A
+    PB9     ------> SAI1_FS_A 
+    */
+    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_3);
+
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10|GPIO_PIN_9);
+
+    }
 }
 
 /* USER CODE BEGIN 1 */
