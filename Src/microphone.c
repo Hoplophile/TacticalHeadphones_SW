@@ -19,13 +19,13 @@ void MIC_AddToAverage(uint32_t microphone_read){
 	for(index=0; index<10; index++){
 		averaged_outputs[index] = (averaged_outputs[index] + microphone_read) / 2;
 	}
-
+	averaging_counter ++;
 	if(averaging_counter == 10) averaging_counter = 0;
 }
 
 uint32_t MIC_GetAverage(void){
 	uint32_t return_value;
-	return_value = (uint32_t)(averaged_outputs[averaging_counter] / 10);
+	return_value = (uint32_t)(averaged_outputs[averaging_counter]);// / 10);
 	averaged_outputs[averaging_counter] = 0;
 	return return_value;
 }

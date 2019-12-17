@@ -1,5 +1,7 @@
 "Application/SW4STM32/startup_stm32l476xx.o"
 "Application/User/main.o"
+"Application/User/microphone.o"
+"Application/User/speaker.o"
 "Application/User/stm32l4xx_hal_msp.o"
 "Application/User/stm32l4xx_it.o"
 "Drivers/CMSIS/system_stm32l4xx.o"

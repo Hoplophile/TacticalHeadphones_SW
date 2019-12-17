@@ -36,7 +36,9 @@ Application/User/main.o: \
  D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h \
  D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_sai.h \
  D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim.h \
- D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim_ex.h
+ D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim_ex.h \
+ D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Src/microphone.h \
+ D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Src/speaker.h
 
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Inc/main.h:
 
@@ -111,3 +113,7 @@ D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HA
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim.h:
 
 D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim_ex.h:
+
+D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Src/microphone.h:
+
+D:/Dokumenty/Praca_inzynierska/Software/tactical_headphones/Src/speaker.h:
