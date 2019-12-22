@@ -10,6 +10,8 @@
 #ifndef APPLICATION_USER_MICROPHONE_H_
 #define APPLICATION_USER_MICROPHONE_H_
 
+#define FIR_SIZE 15
+
 void MIC_AddToAverage(uint32_t);
 uint32_t MIC_GetAverage(void);
 void MIC_AddToMeanLevel(uint32_t);
