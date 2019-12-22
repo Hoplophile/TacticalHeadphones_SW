@@ -43,6 +43,8 @@
 /* USER CODE BEGIN Includes */
 #include "microphone.h"
 #include "speaker.h"
+#include "system.h"
+#include "battery.h"
 
 /* USER CODE END Includes */
 
@@ -79,11 +81,10 @@ uint16_t TIM_flag = 5;
 
 uint32_t microphone;
 uint32_t speaker_output[1];
-uint32_t battery_voltage;
+float battery_voltage;
 
 uint32_t mic_averaged;
 uint32_t mic_mean_level;
-
 
 int adc_type;
 
@@ -104,11 +105,12 @@ static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void HAL_ADC_ConvCpltCallback( ADC_HandleTypeDef * hadc){
-	if(hadc->Instance == ADC3){
+	if(hadc->Instance == hadc3.Instance){
 		ADC3_flag = 1;
-		battery_voltage = HAL_ADC_GetValue(&hadc3);
+		battery_voltage = BAT_GetLevelVolt(&hadc3);
 	}
-	if(hadc->Instance == ADC1){
+
+	if(hadc->Instance == hadc1.Instance){
 		ADC1_flag = 1;
 	}
 
@@ -131,30 +133,9 @@ void HAL_DAC_ConvCpltCallbackCh1( DAC_HandleTypeDef * hdac){
 	HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
 }
 
-void HAL_DAC_ErrorCallbackCh1( DAC_HandleTypeDef * hdac){
-	DAC_flag = 50;
-}
-
-void HAL_ADC_ErrorCallbackCh1( DAC_HandleTypeDef * hdac){
-	ADC3_flag = 50;
-}
-
-void ADC_IRQHandler(void){
-	ADC3_flag = 2;
-	battery_voltage = HAL_ADC_GetValue(&hadc3);
-	HAL_ADC_IRQHandler(&hadc3);
-	HAL_ADC_Start_IT(&hadc3);
-}
-
 void HAL_TIM_PeriodElapsedCallback( TIM_HandleTypeDef * htim){
-	TIM_flag += 1;
-
-	if(HAL_GPIO_ReadPin(Button_Up_GPIO_Port, Button_Up_Pin)){
-		sound_level_control += 0.5;
-	} else if(HAL_GPIO_ReadPin(Button_Down_GPIO_Port, Button_Down_Pin)){
-		sound_level_control -= 0.5;
-	} else if(HAL_GPIO_ReadPin(Button_Main_GPIO_Port, Button_Main_Pin)){
-		menu_mode = menu_mode ? 0 : 1;
+	if(htim->Instance == htim3.Instance) {
+		SYS_HandleButtons(Buttons_states);
 	}
 }
 
@@ -205,11 +186,14 @@ int main(void)
 
   /***** ADC *****/
   HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
+  HAL_ADC_Start_IT(&hadc3);
 
   /***** DAC *****/
   HAL_TIM_Base_Start(&htim6);
 
-  HAL_TIM_Base_Start_IT(&htim3);
+  /**** KEYS *****/
+  HAL_TIM_Base_Start_IT(&htim3);	//30ms period
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -313,7 +297,7 @@ static void MX_ADC1_Init(void)
     /**Common config 
     */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV6;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV256;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
@@ -328,7 +312,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
   hadc1.Init.OversamplingMode = ENABLE;
-  hadc1.Init.Oversampling.Ratio = ADC_OVERSAMPLING_RATIO_8;
+  hadc1.Init.Oversampling.Ratio = ADC_OVERSAMPLING_RATIO_4;
   hadc1.Init.Oversampling.RightBitShift = ADC_RIGHTBITSHIFT_NONE;
   hadc1.Init.Oversampling.TriggeredMode = ADC_TRIGGEREDMODE_SINGLE_TRIGGER;
   hadc1.Init.Oversampling.OversamplingStopReset = ADC_REGOVERSAMPLING_CONTINUED_MODE;
@@ -369,7 +353,7 @@ static void MX_ADC2_Init(void)
     /**Common config 
     */
   hadc2.Instance = ADC2;
-  hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV6;
+  hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV256;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
   hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc2.Init.ScanConvMode = ADC_SCAN_DISABLE;
@@ -413,7 +397,7 @@ static void MX_ADC3_Init(void)
     /**Common config 
     */
   hadc3.Instance = ADC3;
-  hadc3.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV6;
+  hadc3.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV256;
   hadc3.Init.Resolution = ADC_RESOLUTION_12B;
   hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc3.Init.ScanConvMode = ADC_SCAN_DISABLE;
