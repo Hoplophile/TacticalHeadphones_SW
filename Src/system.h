@@ -25,9 +25,14 @@ struct Buttons_action{
 	enum button_press Down;
 	enum button_press Main;
 };
-struct Buttons_action Buttons_action;
 
-void SYS_HandleButtons(struct Buttons_states);
+struct Buttons_counters{
+	uint8_t Up;
+	uint8_t Down;
+	uint8_t Main;
+};
+
+struct Buttons_action SYS_HandleButtons(struct Buttons_states);
 enum button_press SYS_GetButtonAction(uint8_t, uint8_t*);
 void SYS_GetButtonsGPIO(void);
 

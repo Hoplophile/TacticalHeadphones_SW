@@ -72,7 +72,8 @@ const uint32_t sine_wave_array[32] = {2047, 1648, 1264, 910, 600,  345,
                     2831, 2447};
 
 float sound_level_control = 1.0;
-int menu_mode;
+uint8_t system_state  = OFF;
+struct Buttons_action Buttons_actions;
 
 uint16_t ADC1_flag = 5;
 uint16_t ADC3_flag = 5;
@@ -104,10 +105,14 @@ static void MX_TIM3_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+
+
 void HAL_ADC_ConvCpltCallback( ADC_HandleTypeDef * hadc){
 	if(hadc->Instance == hadc3.Instance){
 		ADC3_flag = 1;
-		battery_voltage = BAT_GetLevelVolt(&hadc3);
+		if(BAT_GetLevelPercent(&hadc3) < 10){
+			GoToSleep();
+		}
 	}
 
 	if(hadc->Instance == hadc1.Instance){
@@ -135,7 +140,21 @@ void HAL_DAC_ConvCpltCallbackCh1( DAC_HandleTypeDef * hdac){
 
 void HAL_TIM_PeriodElapsedCallback( TIM_HandleTypeDef * htim){
 	if(htim->Instance == htim3.Instance) {
-		SYS_HandleButtons(Buttons_states);
+		Buttons_actions = SYS_HandleButtons(Buttons_states);
+
+		if(Buttons_actions.Up == SHORT) sound_level_control += 0.2;
+		if(Buttons_actions.Down == SHORT) sound_level_control -= 0.2;
+		if(Buttons_actions.Main == LONG) {
+			switch(system_state){
+			case ON: // Sleep the headphones
+				GoToSleep();
+				break;
+
+			case OFF: // Wake up the headphones
+				WakeUp();
+				break;
+			}
+		}
 	}
 }
 
@@ -185,11 +204,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /***** ADC *****/
-  HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
-  HAL_ADC_Start_IT(&hadc3);
-
-  /***** DAC *****/
-  HAL_TIM_Base_Start(&htim6);
+//  HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
+//  HAL_ADC_Start_IT(&hadc3);
+//
+//  /***** DAC *****/
+//  HAL_TIM_Base_Start(&htim6);
 
   /**** KEYS *****/
   HAL_TIM_Base_Start_IT(&htim3);	//30ms period
@@ -599,21 +618,48 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, Button_Up_Pin|Button_Main_Pin|Button_Down_Pin|Left_Sp_Amp_Pin 
-                          |Right_Sp_Amp_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, Left_Sp_Amp_Pin|Right_Sp_Amp_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : Button_Up_Pin Button_Main_Pin Button_Down_Pin Left_Sp_Amp_Pin 
-                           Right_Sp_Amp_Pin */
-  GPIO_InitStruct.Pin = Button_Up_Pin|Button_Main_Pin|Button_Down_Pin|Left_Sp_Amp_Pin 
-                          |Right_Sp_Amp_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pins : Button_Up_Pin Button_Main_Pin Button_Down_Pin */
+  GPIO_InitStruct.Pin = Button_Up_Pin|Button_Main_Pin|Button_Down_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Left_Sp_Amp_Pin Right_Sp_Amp_Pin */
+  GPIO_InitStruct.Pin = Left_Sp_Amp_Pin|Right_Sp_Amp_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
 
 /* USER CODE BEGIN 4 */
+
+void GoToSleep(void){
+	// Disable left and right microphone conversion
+	HAL_ADC_Stop_DMA(&hadc1);
+	// Disable left and right speaker conversion
+	HAL_TIM_Base_Stop(&htim6);
+	// Disable battery voltage measurement
+	HAL_ADC_Stop_IT(&hadc3);
+	// Disable speakers amplifiers
+	HAL_GPIO_WritePin(Left_Sp_Amp_GPIO_Port, Left_Sp_Amp_Pin, OFF);
+	HAL_GPIO_WritePin(Right_Sp_Amp_GPIO_Port, Right_Sp_Amp_Pin, OFF);
+}
+
+void WakeUp(void){
+	// Enable left and right microphone conversion
+	HAL_ADC_Start_DMA(&hadc1, &microphone, 1);
+	// Enable left and right speaker conversion
+	HAL_TIM_Base_Start(&htim6);
+	// Enable battery voltage measurement
+	HAL_ADC_Start_IT(&hadc3);
+	// Enable speakers amplifiers
+	HAL_GPIO_WritePin(Left_Sp_Amp_GPIO_Port, Left_Sp_Amp_Pin, ON);
+	HAL_GPIO_WritePin(Right_Sp_Amp_GPIO_Port, Right_Sp_Amp_Pin, ON);
+}
 
 /* USER CODE END 4 */
 
